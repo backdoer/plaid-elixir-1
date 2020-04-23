@@ -4,12 +4,91 @@ defmodule Plaid.Webhook do
   """
 
   import Plaid, only: [make_request_with_cred: 4, validate_cred: 1]
+
   alias Plaid.Utils
-  alias Plaid.Webhooks.AuthWebhook
 
-  @enpoint :webhook_verification_key
+  @endpoint :webhook_verification_key
 
-  @spec construct_webhook_event(Plaid.Event.t(), String.t(), String.t(), integer) ::
+  @type params :: %{required(atom) => String.t()}
+  @type config :: %{required(atom) => String.t()}
+
+  defmodule AuthWebHook do
+    @moduledoc """
+    """
+    @type t :: %__MODULE__{
+            webhook_type: String.t(),
+            webhook_code: String.t(),
+            item_id: String.t(),
+            account_id: String.t(),
+            error: Plaid.Error.t()
+          }
+
+    @derive Jason.Encoder
+    defstruct [
+      :webhook_type,
+      :webhook_code,
+      :item_id,
+      :account_id,
+      :error
+    ]
+  end
+
+  defmodule WebHookVerificationKey do
+    @moduledoc """
+    """
+    defmodule VerificationKey do
+      @type t :: %__MODULE__{
+              alg: String.t(),
+              ecreate_at: String.t(),
+              crv: String.t(),
+              expired_at: String.t(),
+              kid: String.t(),
+              kty: String.t(),
+              use: String.t(),
+              x: String.t(),
+              y: String.t()
+            }
+
+      @derive Jason.Encoder
+      defstruct [
+        :alg,
+        :ecreate_at,
+        :crv,
+        :expired_at,
+        :kid,
+        :kty,
+        :use,
+        :x,
+        :y
+      ]
+    end
+
+    @type t :: %__MODULE__{
+            key: VerificationKey.t(),
+            request_id: String.t()
+          }
+
+    @derive Jason.Encoder
+    defstruct [
+      :key,
+      :request_id
+    ]
+  end
+
+  @doc """
+  Constructs an plaid event after validating the jwt_string.
+
+  Parameters
+  ```
+  %{
+    body: "payload_received_from_webhook",
+    client_id: "client_identifier",
+    jwt_string: "plaid_verification_header",
+    secret: "plaid_env_secret"
+
+  ```
+  """
+  @spec construct_webhook_event(params, config | nil) ::
           {:ok, map()} | {:error, any}
         when params: %{
                :body => String.t(),
@@ -24,16 +103,15 @@ defmodule Plaid.Webhook do
              %{client_id: params.client_id, secret: params.secret, key_id: kid},
              config
            ) do
-      :ok ->
-        {:ok, convert_to_event!(payload)}
-
+      {:ok, response}
+    else
       error ->
         error
     end
   end
 
-  @spec retreive_public_key(params, config | nil) :: {:ok, map} | {:error, Plaid.Error.t()}
-  defp retreive_public_key(params, config \\ %{}) do
+  @spec retreive_public_key(map(), config | nil) :: {:ok, map} | {:error, Plaid.Error.t()}
+  defp retreive_public_key(params, config) do
     config = validate_cred(config)
     endpoint = "#{@endpoint}/get"
 
