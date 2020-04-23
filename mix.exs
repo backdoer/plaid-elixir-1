@@ -33,6 +33,7 @@ defmodule Plaid.Mixfile do
       {:httpoison, "~> 1.4"},
       {:poison, "~> 3.0"},
       {:jason, "~> 1.1"},
+      {:joken, "~> 2.0"},
       {:bypass, "~> 0.8", only: [:test]},
       {:credo, "~> 0.5", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.6", only: [:test]},

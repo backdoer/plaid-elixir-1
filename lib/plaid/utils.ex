@@ -201,4 +201,12 @@ defmodule Plaid.Utils do
       }
     )
   end
+
+  def map_response(response, :webhook_verification_key) do
+    Poison.Decode.decode(response,
+      as: %Plaid.Webhooks.WebhookVerificatoinKey{
+        balances: %Plaid.Accounts.Account.Balance{}
+      }
+    )
+  end
 end
