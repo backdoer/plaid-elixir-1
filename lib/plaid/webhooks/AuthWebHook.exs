@@ -1,4 +1,4 @@
-defmodule Plaid.Webhooks.WebHook do
+defmodule Plaid.Webhooks.AuthWebHook do
   @moduledoc """
   """
   defmodule PlaidError do
