@@ -1,4 +1,4 @@
-defmodule Stripe.Webhook do
+defmodule Plaid.Webhook do
   @moduledoc """
   Creates a plaid Event from webhook's payload if signature is valid.
   """
