@@ -1,10 +1,6 @@
 defmodule Plaid.Webhook do
   @moduledoc """
-<<<<<<< Updated upstream
-  Creates a plaid Event from webhook's payload if signature is valid.
-=======
   Creates a Plaid Event from webhook's payload if signature is valid.
->>>>>>> Stashed changes
 
   Verification flow following docs::: plaid.com/docs/#webhook-verification
   """
@@ -20,11 +16,7 @@ defmodule Plaid.Webhook do
 
   defmodule WebHookVerificationKey do
     @type t :: %__MODULE__{
-<<<<<<< Updated upstream
-            key: map(),
-=======
             key: map,
->>>>>>> Stashed changes
             request_id: String.t()
           }
 
@@ -82,11 +74,7 @@ defmodule Plaid.Webhook do
             "request_body_sha256" => body_sha256
           }} <- validate_the_signature(params.jwt_string, wvk),
          true <- less_than_five_minutes_ago(iat),
-<<<<<<< Updated upstream
-         true <- match_bodies(params.body, body_sha256) do
-=======
          true <- bodies_match(params.body, body_sha256) do
->>>>>>> Stashed changes
       create_event(params.body)
     else
       {:ok, %{"alg" => _alg}} ->
@@ -118,17 +106,6 @@ defmodule Plaid.Webhook do
   defp less_than_five_minutes_ago(iat) do
     with now <- DateTime.utc_now(),
          five_mins_ago <- DateTime.add(now, -300, :second),
-<<<<<<< Updated upstream
-         :gt <- DateTime.compare(five_mins_ago, DateTime.from_unix!(iat, :second)) do
-      false
-    else
-      _ ->
-        true
-    end
-  end
-
-  defp match_bodies(body, body_sha256) do
-=======
          res when res in [:eq, :lt] <-
            DateTime.compare(five_mins_ago, DateTime.from_unix!(iat, :second)) do
       true
@@ -139,7 +116,6 @@ defmodule Plaid.Webhook do
   end
 
   defp bodies_match(body, body_sha256) do
->>>>>>> Stashed changes
     with hash <- :crypto.hash(:sha256, body),
          encoded <- Base.encode16(hash),
          ^body_sha256 <- String.downcase(encoded) do
