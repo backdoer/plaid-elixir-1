@@ -14,21 +14,73 @@ defmodule Plaid.Item do
             institution_id: nil,
             item_id: nil,
             webhook: nil,
-            request_id: nil
+            consent_expiration_time: nil,
+            request_id: nil,
+            status: nil
 
   @type t :: %__MODULE__{
           available_products: [String.t()],
           billed_products: [String.t()],
-          error: String.t(),
+          error: String.t() | nil,
           institution_id: String.t(),
           item_id: String.t(),
           webhook: String.t(),
-          request_id: String.t()
+          consent_expiration_time: String.t(),
+          request_id: String.t(),
+          status: Plaid.Item.Status.t()
         }
   @type params :: %{required(atom) => String.t()}
   @type config :: %{required(atom) => String.t()}
+  @type service :: :dwolla | :modern_treasury
 
   @endpoint :item
+
+  defmodule Status do
+    @moduledoc """
+    Plaid Item Status data structure.
+    """
+
+    @derive Jason.Encoder
+    defstruct investments: nil,
+              transactions: nil,
+              last_webhook: nil
+
+    @type t :: %__MODULE__{
+            investments: Plaid.Item.Status.Investments.t(),
+            transactions: Plaid.Item.Status.Transactions.t(),
+            last_webhook: Plaid.Item.Status.LastWebhook.t()
+          }
+
+    defmodule Investments do
+      @moduledoc """
+      Plaid Item Status Investments data structure.
+      """
+
+      @derive Jason.Encoder
+      defstruct last_successful_update: nil, last_failed_update: nil
+      @type t :: %__MODULE__{last_successful_update: String.t(), last_failed_update: String.t()}
+    end
+
+    defmodule Transactions do
+      @moduledoc """
+      Plaid Item Status Transactions data structure.
+      """
+
+      @derive Jason.Encoder
+      defstruct last_successful_update: nil, last_failed_update: nil
+      @type t :: %__MODULE__{last_successful_update: String.t(), last_failed_update: String.t()}
+    end
+
+    defmodule LastWebhook do
+      @moduledoc """
+      Plaid Item Status LastWebhook data structure.
+      """
+
+      @derive Jason.Encoder
+      defstruct sent_at: nil, code_sent: nil
+      @type t :: %__MODULE__{sent_at: String.t(), code_sent: String.t()}
+    end
+  end
 
   @doc """
   Gets an Item.
@@ -184,10 +236,57 @@ defmodule Plaid.Item do
   {:ok, %{processor_token: "some-token", request_id: "k522f2"}}
   ```
   """
+  @deprecated "Use create_processor_token/3 instead"
   @spec create_processor_token(params, config | nil) :: {:ok, map} | {:error, Plaid.Error.t()}
   def create_processor_token(params, config \\ %{}) do
+    create_processor_token(params, :dwolla, config)
+  end
+
+  @doc """
+  Creates a processor token used to integrate with services external to Plaid.
+
+  Parameters
+  ```
+  %{access_token: "access-env-identifier", account_id: "plaid-account-id"}
+  ```
+
+  Response
+  ```
+  {:ok, %{processor_token: "some-token", request_id: "k522f2"}}
+  ```
+  """
+  @spec create_processor_token(params, service, config | nil) ::
+          {:ok, map} | {:error, Plaid.Error.t()}
+  def create_processor_token(params, service, config) do
     config = validate_cred(config)
-    endpoint = "processor/dwolla/processor_token/create"
+    endpoint = "processor/#{service_to_string(service)}/processor_token/create"
+
+    make_request_with_cred(:post, endpoint, config, params)
+    |> Utils.handle_resp(@endpoint)
+  end
+
+  defp service_to_string(:dwolla), do: "dwolla"
+  defp service_to_string(:modern_treasury), do: "modern_treasury"
+
+  @doc """
+  [Creates a stripe bank account token](https://stripe.com/docs/ach)
+  used to create an authenticated funding source with Stripe.
+
+  Parameters
+  ```
+  %{access_token: "access-env-identifier", account_id: "plaid-account-id"}
+  ```
+
+  Response
+  ```
+  {:ok, %{stripe_bank_account_token: "btok_Kb62HbBqrrvdf8pBsAdt", request_id: "[Unique request ID]"}}
+  ```
+  """
+  @spec create_stripe_bank_account_token(params, config | nil) ::
+          {:ok, map} | {:error, Plaid.Error.t()}
+  def create_stripe_bank_account_token(params, config \\ %{}) do
+    config = validate_cred(config)
+    endpoint = "processor/stripe/bank_account_token/create"
 
     make_request_with_cred(:post, endpoint, config, params)
     |> Utils.handle_resp(@endpoint)

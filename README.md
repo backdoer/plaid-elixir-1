@@ -1,7 +1,9 @@
 # Plaid
 
 [![Build Status](https://travis-ci.org/wfgilman/plaid-elixir.svg?branch=master)](https://travis-ci.org/wfgilman/plaid-elixir)
+[![Coverage Status](https://coveralls.io/repos/github/wfgilman/plaid-elixir/badge.svg?branch=master)](https://coveralls.io/github/wfgilman/plaid-elixir?branch=master)
 [![Hex.pm Version](https://img.shields.io/hexpm/v/plaid_elixir.svg)](https://hex.pm/packages/plaid_elixir)
+[![Hex.pm Download Total](https://img.shields.io/hexpm/dt/plaid_elixir.svg)](https://hex.pm/packages/plaid_elixir)
 
 [Documentation](https://hexdocs.pm/plaid_elixir)
 
@@ -11,7 +13,7 @@ Supported Plaid products:
 
 - [x] Transactions
 - [x] Auth
-- [ ] Identity
+- [x] Identity
 - [x] Balance
 - [x] Income
 - [ ] Assets
@@ -25,7 +27,7 @@ Add to your dependencies in `mix.exs`. The hex specification is required.
 
 ```elixir
 def deps do
-  [{:plaid, "~> 1.7", hex: :plaid_elixir}]
+  [{:plaid, "~> 2.0", hex: :plaid_elixir}]
 end
 ```
 
@@ -69,6 +71,7 @@ Plaid.Accounts.get(%{access_token: "my-token"}, %{root_uri: "http://sandbox.plai
 Access tokens are required for almost all calls to Plaid. However, they can only be obtained
 using [Plaid Link](https://plaid.com/docs/link/transition-guide/#creating-items-with-link).
 
+Call the `/link` endpoint to create a link token that you'll use to initialize Plaid Link.
 Once a user successfully connects to his institution using Plaid Link, a
 public token is returned to the client. This single-use public token can be exchanged
 for an access token and item id (both of which should be stored) using
@@ -84,4 +87,4 @@ As of version `1.2`, this library natively supports serialization of its structs
 
 This library uses [bypass](https://github.com/PSPDFKit-labs/bypass) to simulate HTTP responses from Plaid.
 
-It uses Elixir's native formatter as of `1.3.2`
+It uses Elixir's native formatter as of `1.3.2` and Credo.
