@@ -5,27 +5,10 @@ defmodule Plaid.Webhook do
   Verification flow following docs::: plaid.com/docs/#webhook-verification
   """
 
-  import Plaid, only: [make_request_with_cred: 4, validate_cred: 1]
-
-  alias Plaid.Utils
-
-  @endpoint :webhook_verification_key
+  alias Plaid.WebhookVerificationKey
 
   @type params :: %{required(atom) => String.t()}
   @type config :: %{required(atom) => String.t()}
-
-  defmodule WebHookVerificationKey do
-    @type t :: %__MODULE__{
-            key: map,
-            request_id: String.t()
-          }
-
-    @derive Jason.Encoder
-    defstruct [
-      :key,
-      :request_id
-    ]
-  end
 
   defmodule Event do
     @type t :: %__MODULE__{
@@ -63,9 +46,9 @@ defmodule Plaid.Webhook do
              }
   def construct_event(params, config \\ %{}) do
     with {:ok, %{"alg" => "ES256", "kid" => kid}} <- Joken.peek_header(params.jwt_string),
-         {:ok, %Plaid.Webhook.WebHookVerificationKey{} = wvk} <-
-           retreive_public_key(
-             %{client_id: params.client_id, secret: params.secret, key_id: kid},
+         {:ok, %WebhookVerificationKey{} = wvk} <-
+           WebhookVerificationKey.get(
+             %{key_id: kid},
              config
            ),
          {:ok,
@@ -89,14 +72,6 @@ defmodule Plaid.Webhook do
       _error ->
         {:error, :unauthorized}
     end
-  end
-
-  defp retreive_public_key(params, config) do
-    config = validate_cred(config)
-    endpoint = "#{@endpoint}/get"
-
-    make_request_with_cred(:post, endpoint, config, params)
-    |> Utils.handle_resp(@endpoint)
   end
 
   defp validate_the_signature(jwt_string, jwk) do
