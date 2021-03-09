@@ -63,7 +63,7 @@ defmodule Plaid.Webhook do
       {:ok, %{"alg" => _alg}} ->
         {:error, :unauthorized, reason: "incorrect alg"}
 
-      {:erro, %Plaid.Error{}} ->
+      {:error, %Plaid.Error{}} ->
         {:error, :unauthorized, reason: "invalid plaid credentials"}
 
       false ->
@@ -102,7 +102,6 @@ defmodule Plaid.Webhook do
 
   defp create_event(body) do
     body = Jason.decode!(body)
-    # type = body["webhook_type"]
     type_code = String.downcase("#{body["webhook_type"]}.#{body["webhook_code"]}")
 
     data =
