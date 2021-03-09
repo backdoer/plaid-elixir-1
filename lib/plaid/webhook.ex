@@ -30,9 +30,7 @@ defmodule Plaid.Webhook do
   ```
   %{
     body: "payload_received_from_webhook",
-    client_id: "client_identifier",
-    jwt_string: "plaid_verification_header",
-    secret: "plaid_env_secret"
+    jwt_string: "plaid_verification_header"
   }
   ```
   """
@@ -40,9 +38,7 @@ defmodule Plaid.Webhook do
           {:ok, map()} | {:error, any}
         when params: %{
                :body => String.t(),
-               :client_id => String.t(),
-               :jwt_string => String.t(),
-               :secret => String.t()
+               :jwt_string => String.t()
              }
   def construct_event(params, config \\ %{}) do
     with {:ok, %{"alg" => "ES256", "kid" => kid}} <- Joken.peek_header(params.jwt_string),
